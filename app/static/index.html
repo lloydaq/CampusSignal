@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusSignal</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <p class="eyebrow">CAMPUS OPERATIONS</p>
+      <h1>CampusSignal</h1>
+      <p class="lede">Report an issue, make the reasoning visible, and track it through resolution.</p>
+    </header>
+    <section class="card">
+      <h2>Report an incident</h2>
+      <form id="incident-form">
+        <div class="grid two">
+          <label>Title<input name="title" minlength="5" maxlength="120" required placeholder="e.g. Water leak near science lab"></label>
+          <label>Your name<input name="reporter_name" minlength="2" maxlength="80" required></label>
+        </div>
+        <label>Description<textarea name="description" minlength="10" maxlength="2000" required placeholder="What happened? Include useful details."></textarea></label>
+        <div class="grid three">
+          <label>Category<select name="category"><option>safety</option><option>facilities</option><option>technology</option><option>academic</option><option>wellbeing</option><option>other</option></select></label>
+          <label>Location<input name="location" minlength="2" maxlength="160" required placeholder="Building / room"></label>
+          <label>Severity<select name="severity"><option value="1">1 — Low</option><option value="2">2 — Moderate</option><option value="3" selected>3 — Significant</option><option value="4">4 — High</option><option value="5">5 — Critical</option></select></label>
+        </div>
+        <button type="submit">Submit report</button>
+        <p id="form-message" class="message" role="status"></p>
+      </form>
+    </section>
+    <section>
+      <div class="section-heading"><h2>Incident queue</h2><button id="refresh" class="secondary">Refresh</button></div>
+      <div id="incidents" class="incident-list"><p class="muted">Loading incidents…</p></div>
+    </section>
+  </main>
+  <template id="incident-template">
+    <article class="incident card">
+      <div class="incident-top"><div><span class="status"></span><span class="category"></span><h3 class="title"></h3></div><strong class="priority"></strong></div>
+      <p class="description"></p><p class="meta"></p>
+      <details><summary>Why this priority / duplicate result?</summary><div class="details-body"></div></details>
+      <div class="management"><select class="status-edit"><option>reported</option><option>triaged</option><option>in_progress</option><option>resolved</option><option>closed</option></select><input class="resolution" placeholder="Resolution note (required for resolved)"><button class="save secondary">Update</button></div>
+    </article>
+  </template>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+"""CampusSignal application package."""
