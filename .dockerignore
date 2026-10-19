@@ -1,0 +1,17 @@
+.git
+.gitignore
+.vscode
+.venv
+__pycache__
+*.py[cod]
+.pytest_cache
+data
+tests
+docs
+*.db
+*.log
+.env
+.env.*
+README.md
+.python-version
+Dockerfile
