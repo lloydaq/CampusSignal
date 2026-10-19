@@ -133,9 +133,12 @@ def test_frontend_contract_contains_api_states_and_safe_rendering(client):
     script = client.get("/static/app.js").text
     assert 'id="metric-total"' in page
     assert 'id="search"' in page
+    assert 'id="detail-panel"' in page
+    assert 'Signal Trail' in page or 'signal trail' in script.lower()
+    assert 'prefers-reduced-motion' in client.get("/static/styles.css").text
     assert "requestJson('/api/incidents'" in script
     assert "requestJson(`/api/incidents/${incident.id}`" in script
-    assert "Loading incidents" in script
-    assert "Could not load incidents" in script
+    assert "Loading incident signals" in script
+    assert "Signal desk unavailable" in script
     assert "Submitting…" in script
     assert "innerHTML" not in script

@@ -3,60 +3,79 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CampusSignal</title>
+  <meta name="theme-color" content="#f5f4ef">
+  <title>CampusSignal · Incident intelligence</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <main class="shell">
-    <header>
-      <p class="eyebrow">CAMPUS OPERATIONS</p>
-      <h1>CampusSignal</h1>
-      <p class="lede">Report an issue, make the reasoning visible, and track it through resolution.</p>
-    </header>
-    <section class="metrics" aria-label="Incident metrics">
-      <div class="metric card"><span>Total reports</span><strong id="metric-total">—</strong></div>
-      <div class="metric card"><span>Active reports</span><strong id="metric-active">—</strong></div>
-      <div class="metric card"><span>High priority</span><strong id="metric-high">—</strong></div>
-      <div class="metric card"><span>Resolved / closed</span><strong id="metric-resolved">—</strong></div>
-    </section>
-    <section class="card">
-      <h2>Report an incident</h2>
-      <form id="incident-form">
-        <div class="grid two">
-          <label>Title<input name="title" minlength="5" maxlength="120" required placeholder="e.g. Water leak near science lab"></label>
-          <label>Your name<input name="reporter_name" minlength="2" maxlength="80" required></label>
-        </div>
-        <label>Description<textarea name="description" minlength="10" maxlength="2000" required placeholder="What happened? Include useful details."></textarea></label>
-        <div class="grid three">
-          <label>Category<select name="category"><option>safety</option><option>facilities</option><option>technology</option><option>academic</option><option>wellbeing</option><option>other</option></select></label>
-          <label>Location<input name="location" minlength="2" maxlength="160" required placeholder="Building / room"></label>
-          <label>Severity<select name="severity"><option value="1">1 — Low</option><option value="2">2 — Moderate</option><option value="3" selected>3 — Significant</option><option value="4">4 — High</option><option value="5">5 — Critical</option></select></label>
-        </div>
-        <button type="submit" id="submit-report">Submit report</button>
-        <p id="form-message" class="message" role="status"></p>
-      </form>
-    </section>
-    <section>
-      <div class="section-heading"><div><h2>Incident queue</h2><p id="queue-summary" class="muted"></p></div><button id="refresh" class="secondary">Refresh</button></div>
-      <div class="filters card">
-        <label>Search<input id="search" type="search" placeholder="Title, description, location, reporter, or ID"></label>
-        <div class="grid three">
-          <label>Status<select id="status-filter"><option value="">All statuses</option><option value="reported">Reported</option><option value="triaged">Triaged</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></label>
-          <label>Category<select id="category-filter"><option value="">All categories</option><option>Safety</option><option>Facilities</option><option>Technology</option><option>Academic</option><option>Wellbeing</option><option>Other</option></select></label>
-          <label>Priority<select id="priority-filter"><option value="">All priorities</option><option value="high">High (70+)</option><option value="medium">Medium (40–69)</option><option value="low">Low (0–39)</option></select></label>
-        </div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#overview" aria-label="CampusSignal overview">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>CampusSignal</strong><small>Incident intelligence</small></span>
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link is-active" href="#overview"><span class="nav-glyph" aria-hidden="true">⌂</span>Overview</a>
+        <a class="nav-link" href="#queue"><span class="nav-glyph" aria-hidden="true">≡</span>Incident queue</a>
+        <a class="nav-link" href="#report"><span class="nav-glyph" aria-hidden="true">＋</span>Report incident</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="note-dot" aria-hidden="true"></span>
+        <div><strong>Signal desk online</strong><p>Live data from your campus workspace.</p></div>
       </div>
-      <div id="incidents" class="incident-list" aria-live="polite"><p class="muted">Loading incidents…</p></div>
-    </section>
-  </main>
-  <template id="incident-template">
-    <article class="incident card">
-      <div class="incident-top"><div><span class="status"></span><span class="category"></span><h3 class="title"></h3></div><strong class="priority"></strong></div>
-      <p class="description"></p><p class="meta"></p>
-      <details><summary>Why this priority / duplicate result?</summary><div class="details-body"></div></details>
-      <div class="management"><select class="status-edit" aria-label="New status"></select><input class="resolution" placeholder="Resolution note (required for resolved)"><button class="save secondary">Update</button></div>
-    </article>
-  </template>
+      <p class="sidebar-footer">Built for calm, accountable response.</p>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong>Overview</strong></div>
+        <button class="icon-button mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <div class="topbar-actions"><span class="live-status"><span class="live-dot" aria-hidden="true"></span>Live workspace</span><button class="button button-primary button-small" id="header-report" type="button"><span aria-hidden="true">＋</span> Report incident</button></div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="page-intro" id="overview" aria-labelledby="page-title">
+          <div><p class="section-kicker">CAMPUS OPERATIONS · <span id="current-date">TODAY</span></p><h1 id="page-title">Good morning, <em>let’s find the signal.</em></h1><p class="intro-copy">A clear view of what your campus is telling you — and what needs attention next.</p></div>
+          <button class="button button-secondary" id="refresh" type="button"><span class="refresh-icon" aria-hidden="true">↻</span> Refresh data</button>
+        </section>
+
+        <section class="metrics" aria-label="Incident overview metrics">
+          <article class="metric-card metric-primary"><div class="metric-label"><span class="metric-icon alert-icon" aria-hidden="true">!</span><span>Needs attention</span></div><strong id="metric-active">—</strong><p>Active incidents across campus</p></article>
+          <article class="metric-card"><div class="metric-label"><span class="metric-icon" aria-hidden="true">◷</span><span>Total reports</span></div><strong id="metric-total">—</strong><p>All reported incidents</p></article>
+          <article class="metric-card"><div class="metric-label"><span class="metric-icon priority-icon" aria-hidden="true">↗</span><span>High priority</span></div><strong id="metric-high">—</strong><p>Score of 70 or above</p></article>
+          <article class="metric-card"><div class="metric-label"><span class="metric-icon success-icon" aria-hidden="true">✓</span><span>Resolved</span></div><strong id="metric-resolved">—</strong><p>Resolved or closed reports</p></article>
+        </section>
+
+        <section class="workspace" id="queue" aria-label="Incident workspace">
+          <div class="queue-panel panel">
+            <div class="panel-heading"><div><p class="section-kicker">LIVE QUEUE</p><h2>Incidents</h2><p id="queue-summary" class="panel-subtitle">Loading reports…</p></div><span class="queue-count" id="queue-count">—</span></div>
+            <div class="filter-bar">
+              <label class="search-field"><span class="sr-only">Search incidents</span><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search incidents…" autocomplete="off"></label>
+              <label class="filter-select"><span class="sr-only">Filter by status</span><select id="status-filter"><option value="">All statuses</option><option value="reported">Reported</option><option value="triaged">Triaged</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></label>
+              <label class="filter-select"><span class="sr-only">Filter by category</span><select id="category-filter"><option value="">All categories</option><option>Safety</option><option>Facilities</option><option>Technology</option><option>Academic</option><option>Wellbeing</option><option>Other</option></select></label>
+              <label class="filter-select priority-filter"><span class="sr-only">Filter by priority</span><select id="priority-filter"><option value="">Priority</option><option value="high">High 70+</option><option value="medium">Medium 40–69</option><option value="low">Low 0–39</option></select></label>
+              <button class="clear-button" id="clear-filters" type="button" hidden>Clear</button>
+            </div>
+            <div class="queue-head" aria-hidden="true"><span>Incident</span><span>Priority</span></div>
+            <div id="incidents" class="incident-list" aria-live="polite"><div class="loading-state"><span class="spinner" aria-hidden="true"></span><span>Loading incident signals…</span></div></div>
+          </div>
+          <aside class="detail-panel panel" id="detail-panel" aria-labelledby="detail-heading" aria-live="polite"><div class="detail-placeholder"><span class="placeholder-mark" aria-hidden="true">◎</span><h2 id="detail-heading">Select an incident</h2><p>Choose a report from the queue to inspect its signal trail, priority reasoning, and next action.</p></div></aside>
+        </section>
+
+        <section class="report-section panel" id="report" aria-labelledby="report-heading">
+          <div class="report-aside"><p class="section-kicker">NEW SIGNAL</p><h2 id="report-heading">Report an incident</h2><p>Share what you’re seeing. Clear details help the right people respond sooner.</p><div class="report-rule"><span aria-hidden="true">✦</span> Every report is preserved and reviewable.</div></div>
+          <form id="incident-form" class="report-form">
+            <div class="form-grid form-grid-two"><label for="title">Incident title <span class="required">Required</span><input id="title" name="title" minlength="5" maxlength="120" required placeholder="e.g. Water leak near science lab"></label><label for="reporter_name">Your name <span class="required">Required</span><input id="reporter_name" name="reporter_name" minlength="2" maxlength="80" required placeholder="How should we identify you?"></label></div>
+            <label for="description">What happened? <span class="required">Required</span><textarea id="description" name="description" minlength="10" maxlength="2000" required placeholder="Include details that help someone locate or understand the issue."></textarea><span class="field-help">Be specific about impact, timing, and what you observed.</span></label>
+            <div class="form-grid form-grid-three"><label for="category">Category<select id="category" name="category"><option>safety</option><option>facilities</option><option>technology</option><option>academic</option><option>wellbeing</option><option>other</option></select></label><label for="location">Location <span class="required">Required</span><input id="location" name="location" minlength="2" maxlength="160" required placeholder="Building, room, or area"></label><label for="severity">Severity<select id="severity" name="severity"><option value="1">1 · Low</option><option value="2">2 · Moderate</option><option value="3" selected>3 · Significant</option><option value="4">4 · High</option><option value="5">5 · Critical</option></select></label></div>
+            <div class="form-actions"><button class="button button-primary" type="submit" id="submit-report"><span aria-hidden="true">↗</span> Submit report</button><p id="form-message" class="form-message" role="status" aria-live="polite"></p></div>
+          </form>
+        </section>
+        <footer class="page-footer"><span>CampusSignal</span><span>Calm intelligence for a connected campus.</span></footer>
+      </div>
+    </main>
+  </div>
+  <div class="sr-only" id="live-announcer" aria-live="polite"></div>
   <script src="/static/app.js"></script>
 </body>
 </html>
