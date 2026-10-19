@@ -42,6 +42,12 @@ def test_submit_and_list_persisted_incident(client):
     assert client.get("/api/incidents").json()[0]["title"] == "Broken light in library"
 
 
+def test_saved_incident_is_visible_to_a_new_app_client(client):
+    client.post("/api/incidents", json=report())
+    with TestClient(app) as restarted_client:
+        assert restarted_client.get("/api/incidents").json()[0]["id"] == 1
+
+
 def test_validation_rejects_short_description_and_unknown_category(client):
     response = client.post("/api/incidents", json=report(description="short", category="not-real"))
     assert response.status_code == 422
