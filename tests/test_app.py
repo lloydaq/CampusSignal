@@ -126,3 +126,16 @@ def test_database_context_rolls_back_failed_transaction():
             raise RuntimeError("simulated failure")
     with get_connection() as connection:
         assert connection.execute("SELECT COUNT(*) FROM transaction_probe").fetchone()[0] == 0
+
+
+def test_frontend_contract_contains_api_states_and_safe_rendering(client):
+    page = client.get("/").text
+    script = client.get("/static/app.js").text
+    assert 'id="metric-total"' in page
+    assert 'id="search"' in page
+    assert "requestJson('/api/incidents'" in script
+    assert "requestJson(`/api/incidents/${incident.id}`" in script
+    assert "Loading incidents" in script
+    assert "Could not load incidents" in script
+    assert "Submitting…" in script
+    assert "innerHTML" not in script

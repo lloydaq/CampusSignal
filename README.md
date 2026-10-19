@@ -29,7 +29,7 @@ The single documented test command is:
 python -m pytest -q
 ```
 
-The tests cover persistence, validation, priority-factor output, duplicate evidence, and the required resolution note.
+The tests cover persistence, validation, priority-factor output, duplicate evidence, lifecycle history, frontend/API contract markers, and the required resolution note. The frontend uses the existing API directly; no mock incident data is bundled.
 
 ## Docker
 

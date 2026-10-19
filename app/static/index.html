@@ -13,6 +13,12 @@
       <h1>CampusSignal</h1>
       <p class="lede">Report an issue, make the reasoning visible, and track it through resolution.</p>
     </header>
+    <section class="metrics" aria-label="Incident metrics">
+      <div class="metric card"><span>Total reports</span><strong id="metric-total">—</strong></div>
+      <div class="metric card"><span>Active reports</span><strong id="metric-active">—</strong></div>
+      <div class="metric card"><span>High priority</span><strong id="metric-high">—</strong></div>
+      <div class="metric card"><span>Resolved / closed</span><strong id="metric-resolved">—</strong></div>
+    </section>
     <section class="card">
       <h2>Report an incident</h2>
       <form id="incident-form">
@@ -26,13 +32,21 @@
           <label>Location<input name="location" minlength="2" maxlength="160" required placeholder="Building / room"></label>
           <label>Severity<select name="severity"><option value="1">1 — Low</option><option value="2">2 — Moderate</option><option value="3" selected>3 — Significant</option><option value="4">4 — High</option><option value="5">5 — Critical</option></select></label>
         </div>
-        <button type="submit">Submit report</button>
+        <button type="submit" id="submit-report">Submit report</button>
         <p id="form-message" class="message" role="status"></p>
       </form>
     </section>
     <section>
-      <div class="section-heading"><h2>Incident queue</h2><button id="refresh" class="secondary">Refresh</button></div>
-      <div id="incidents" class="incident-list"><p class="muted">Loading incidents…</p></div>
+      <div class="section-heading"><div><h2>Incident queue</h2><p id="queue-summary" class="muted"></p></div><button id="refresh" class="secondary">Refresh</button></div>
+      <div class="filters card">
+        <label>Search<input id="search" type="search" placeholder="Title, description, location, reporter, or ID"></label>
+        <div class="grid three">
+          <label>Status<select id="status-filter"><option value="">All statuses</option><option value="reported">Reported</option><option value="triaged">Triaged</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select></label>
+          <label>Category<select id="category-filter"><option value="">All categories</option><option>Safety</option><option>Facilities</option><option>Technology</option><option>Academic</option><option>Wellbeing</option><option>Other</option></select></label>
+          <label>Priority<select id="priority-filter"><option value="">All priorities</option><option value="high">High (70+)</option><option value="medium">Medium (40–69)</option><option value="low">Low (0–39)</option></select></label>
+        </div>
+      </div>
+      <div id="incidents" class="incident-list" aria-live="polite"><p class="muted">Loading incidents…</p></div>
     </section>
   </main>
   <template id="incident-template">
@@ -40,7 +54,7 @@
       <div class="incident-top"><div><span class="status"></span><span class="category"></span><h3 class="title"></h3></div><strong class="priority"></strong></div>
       <p class="description"></p><p class="meta"></p>
       <details><summary>Why this priority / duplicate result?</summary><div class="details-body"></div></details>
-      <div class="management"><select class="status-edit"><option>reported</option><option>triaged</option><option>in_progress</option><option>resolved</option><option>closed</option></select><input class="resolution" placeholder="Resolution note (required for resolved)"><button class="save secondary">Update</button></div>
+      <div class="management"><select class="status-edit" aria-label="New status"></select><input class="resolution" placeholder="Resolution note (required for resolved)"><button class="save secondary">Update</button></div>
     </article>
   </template>
   <script src="/static/app.js"></script>
