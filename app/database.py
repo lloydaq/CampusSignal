@@ -23,6 +23,9 @@ def get_connection():
     try:
         yield connection
         connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
     finally:
         connection.close()
 
@@ -46,8 +49,20 @@ def init_db() -> None:
                 duplicate_of INTEGER REFERENCES incidents(id),
                 duplicate_score REAL,
                 duplicate_evidence TEXT NOT NULL DEFAULT '[]',
+                duplicate_candidates TEXT NOT NULL DEFAULT '[]',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS incident_status_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                incident_id INTEGER NOT NULL REFERENCES incidents(id),
+                from_status TEXT,
+                to_status TEXT NOT NULL,
+                note TEXT,
+                changed_at TEXT NOT NULL
+            );
             """
         )
+        columns = {row["name"] for row in connection.execute("PRAGMA table_info(incidents)")}
+        if "duplicate_candidates" not in columns:
+            connection.execute("ALTER TABLE incidents ADD COLUMN duplicate_candidates TEXT NOT NULL DEFAULT '[]'")

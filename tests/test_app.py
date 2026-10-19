@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.database import init_db
+from app.database import get_connection, init_db
 
 
 @pytest.fixture(autouse=True)
@@ -60,12 +60,69 @@ def test_duplicate_result_explains_matching_signals(client):
     body = response.json()
     assert body["duplicate_of"] == 1
     assert {e["signal"] for e in body["duplicate_evidence"]} == {"text_overlap", "same_category", "same_location", "within_24_hours"}
+    assert body["duplicate_candidates"][0]["candidate_incident_id"] == 1
+    assert body["duplicate_candidates"][0]["matching_signals"]
+    assert "human review" in body["duplicate_candidates"][0]["explanation"].lower()
+
+
+def test_unrelated_report_is_not_marked_duplicate_and_explains_conflicts(client):
+    client.post("/api/incidents", json=report())
+    response = client.post("/api/incidents", json=report(
+        title="Exam portal password reset",
+        description="Students cannot access the remote exam portal after password changes.",
+        category="technology",
+        location="North Residence",
+        severity=2,
+    ))
+    body = response.json()
+    assert body["duplicate_of"] is None
+    candidate = body["duplicate_candidates"][0]
+    assert candidate["candidate_incident_id"] == 1
+    assert {signal["signal"] for signal in candidate["conflicting_signals"]} >= {"same_category", "same_location"}
 
 
 def test_resolving_requires_note_and_persists_resolution(client):
     incident_id = client.post("/api/incidents", json=report()).json()["id"]
     assert client.patch(f"/api/incidents/{incident_id}", json={"status": "resolved"}).status_code == 422
+    assert client.patch(f"/api/incidents/{incident_id}", json={"status": "triaged"}).status_code == 200
+    assert client.patch(f"/api/incidents/{incident_id}", json={"status": "in_progress"}).status_code == 200
     response = client.patch(f"/api/incidents/{incident_id}", json={"status": "resolved", "resolution_note": "Replaced the bulb and tested the circuit."})
     assert response.status_code == 200
     assert response.json()["status"] == "resolved"
+    assert [entry["to_status"] for entry in response.json()["status_history"]] == ["reported", "triaged", "in_progress", "resolved"]
+    assert response.json()["status_history"][-1]["note"].startswith("Replaced")
+    closed = client.patch(f"/api/incidents/{incident_id}", json={"status": "closed"})
+    assert closed.status_code == 200
+    assert closed.json()["resolution_note"].startswith("Replaced")
     assert client.get("/api/incidents").json()[0]["resolution_note"].startswith("Replaced")
+
+
+def test_invalid_status_transition_is_rejected_without_mutation(client):
+    incident_id = client.post("/api/incidents", json=report()).json()["id"]
+    response = client.patch(f"/api/incidents/{incident_id}", json={"status": "closed"})
+    assert response.status_code == 422
+    current = client.get("/api/incidents").json()[0]
+    assert current["status"] == "reported"
+    assert [entry["to_status"] for entry in current["status_history"]] == ["reported"]
+
+
+def test_priority_is_deterministic_and_direct_service_rejects_invalid_input(client):
+    first = client.post("/api/incidents", json=report(severity=5, title="Urgent fire danger in lab")).json()
+    second = client.post("/api/incidents", json=report(severity=5, title="Different urgent fire danger in lab")).json()
+    assert first["priority_score"] == second["priority_score"]
+    assert sum(factor["points"] for factor in first["priority_factors"]) == first["priority_score"]
+    from app.service import priority_for
+    with pytest.raises(ValueError):
+        priority_for("title", "description", "unknown", 3)
+    with pytest.raises(ValueError):
+        priority_for("title", "description", "facilities", 0)
+
+
+def test_database_context_rolls_back_failed_transaction():
+    with pytest.raises(RuntimeError):
+        with get_connection() as connection:
+            connection.execute("CREATE TABLE transaction_probe (id INTEGER)")
+            connection.execute("INSERT INTO transaction_probe VALUES (1)")
+            raise RuntimeError("simulated failure")
+    with get_connection() as connection:
+        assert connection.execute("SELECT COUNT(*) FROM transaction_probe").fetchone()[0] == 0

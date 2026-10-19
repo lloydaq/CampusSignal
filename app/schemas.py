@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -46,6 +44,14 @@ class IncidentUpdate(BaseModel):
         return value
 
 
+class StatusHistoryEntry(BaseModel):
+    id: int
+    from_status: str | None
+    to_status: str
+    note: str | None
+    changed_at: datetime
+
+
 class Incident(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -63,5 +69,7 @@ class Incident(BaseModel):
     duplicate_of: int | None
     duplicate_score: float | None
     duplicate_evidence: list[dict]
+    duplicate_candidates: list[dict]
+    status_history: list[StatusHistoryEntry]
     created_at: datetime
     updated_at: datetime
