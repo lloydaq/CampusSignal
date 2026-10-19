@@ -142,3 +142,20 @@ def test_frontend_contract_contains_api_states_and_safe_rendering(client):
     assert "Signal desk unavailable" in script
     assert "Submitting…" in script
     assert "innerHTML" not in script
+
+
+def test_full_backend_lifecycle_persists_history_and_metrics(client):
+    response = client.post("/api/incidents", json=report(severity=5, title="Urgent fire danger in lab"))
+    incident_id = response.json()["id"]
+    for status in ("triaged", "in_progress"):
+        assert client.patch(f"/api/incidents/{incident_id}", json={"status": status}).status_code == 200
+    assert client.patch(f"/api/incidents/{incident_id}", json={"status": "resolved"}).status_code == 422
+    resolution = "Facilities replaced the damaged fixture and verified the area is safe."
+    assert client.patch(f"/api/incidents/{incident_id}", json={"status": "resolved", "resolution_note": resolution}).status_code == 200
+    assert client.patch(f"/api/incidents/{incident_id}", json={"status": "closed"}).status_code == 200
+    refreshed = client.get("/api/incidents").json()[0]
+    assert refreshed["status"] == "closed"
+    assert refreshed["resolution_note"] == resolution
+    assert [entry["to_status"] for entry in refreshed["status_history"]] == ["reported", "triaged", "in_progress", "resolved", "closed"]
+    assert refreshed["status_history"][-2]["note"] == resolution
+    assert refreshed["priority_score"] >= 70

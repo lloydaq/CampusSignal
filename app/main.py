@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -9,14 +10,15 @@ from .schemas import IncidentCreate, IncidentUpdate
 from .service import duplicate_match, dumps, loads, now_iso, priority_for
 
 
-app = FastAPI(title="CampusSignal", version="0.1.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="CampusSignal", version="0.1.0", lifespan=lifespan)
 STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-
-@app.on_event("startup")
-def startup() -> None:
-    init_db()
 
 
 STATUS_TRANSITIONS = {
